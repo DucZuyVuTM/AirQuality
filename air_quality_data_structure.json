@@ -1,0 +1,10 @@
+{
+    "device_id": "string",
+    "timestamp": "int",
+    "pm25": "float",
+    "pm10": "float",
+    "co2": "int",
+    "temperature": "float",
+    "humidity": "float",
+    "relay_state": "boolean"
+}
