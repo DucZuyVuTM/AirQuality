@@ -7,7 +7,6 @@ Generates random data and outputs to console (or simulates MQTT)
 import json
 import time
 import random
-import threading
 from datetime import datetime
 
 class AirQualityEmulator:
@@ -35,8 +34,11 @@ class AirQualityEmulator:
         # Humidity: 30-70%
         humidity = max(30, min(70, 50 + random.uniform(-10, 10)))
         
-        # Relay state: random or based on PM2.5 > 50
-        relay_state = pm25 > 50 and random.random() > 0.3
+        # Relay state: based on PM2.5 or PM10
+        relay_state = pm25 > 50 or pm10 > 63
+
+        # Warning status: based on PM2.5 or PM10 or CO2
+        warning = pm25 > 35 or pm10 > 50 or co2 > 1000
         
         return {
             "device_id": self.device_id,
@@ -48,7 +50,7 @@ class AirQualityEmulator:
             "temperature": round(temperature, 1),
             "humidity": round(humidity, 1),
             "relay_state": relay_state,
-            "status": "OK" if pm25 < 100 else "WARNING"
+            "status": "DANGER" if relay_state else "WARNING" if warning else "OK"
         }
     
     def display_data(self, data):
@@ -56,15 +58,15 @@ class AirQualityEmulator:
         print(f"\n{'='*60}")
         print(f"📊 AIR QUALITY DATA - {data['datetime']}")
         print(f"{'='*60}")
-        print(f"🆔 Device: {data['device_id']}")
-        print(f"⏰ Time: {datetime.fromtimestamp(data['timestamp']).strftime('%H:%M:%S')}")
-        print(f"🌫️  PM2.5: {data['pm25']} µg/m³ {'⚠️' if data['pm25'] > 35 else ''}")
-        print(f"💨 PM10:  {data['pm10']} µg/m³")
-        print(f"🌡️  CO2:   {data['co2']} ppm {'⚠️' if data['co2'] > 1000 else ''}")
-        print(f"🌡️  Temperature: {data['temperature']}°C")
-        print(f"💧 Humidity:   {data['humidity']}%")
-        print(f"🔌 Relay:   {'🟢 ON' if data['relay_state'] else '🔴 OFF'}")
-        print(f"📈 Status: {data['status']}")
+        print(f"🆔 Device:      {data['device_id']}")
+        print(f"⏰ Time:        {datetime.fromtimestamp(data['timestamp']).strftime('%H:%M:%S')}")
+        print(f"🌫️ PM2.5:       {data['pm25']} µg/m³ {'⚠️' if data['pm25'] > 35 else ''}")
+        print(f"💨 PM10:        {data['pm10']} µg/m³ {'⚠️' if data['pm10'] > 50 else ''}")
+        print(f"🌡️ CO2:         {data['co2']} ppm {'⚠️' if data['co2'] > 1000 else ''}")
+        print(f"🌡️ Temperature: {data['temperature']}°C")
+        print(f"💧 Humidity:    {data['humidity']}%")
+        print(f"🔌 Relay:       {'🟢 ON' if data['relay_state'] else '🔴 OFF'}")
+        print(f"📈 Status:      {data['status']}")
         
         # Simulate MQTT sending
         mqtt_payload = json.dumps({
@@ -81,7 +83,7 @@ class AirQualityEmulator:
     def run_simulation(self):
         """Run simulation loop"""
         print(f"🚀 STARTING IoT DEVICE SIMULATION: {self.device_id}")
-        print(f"⏱️  Data reading interval: {self.interval} seconds")
+        print(f"⏱️ Data reading interval: {self.interval} seconds")
         print(f"📡 Simulated MQTT connection to ThingsBoard...")
         
         self.running = True
@@ -102,7 +104,7 @@ class AirQualityEmulator:
             
             # Simulate processing and sending data (0.2-0.5s)
             process_time = random.uniform(0.2, 0.5)
-            print(f"   ⚙️  Processing and sending data... ({process_time:.1f}s)")
+            print(f"   ⚙️ Processing and sending data... ({process_time:.1f}s)")
             time.sleep(process_time)
             
             if cycle < 3:  # Run 3 demo cycles

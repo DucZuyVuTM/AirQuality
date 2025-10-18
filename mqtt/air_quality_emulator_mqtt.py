@@ -36,7 +36,8 @@ class AirQualityEmulator:
         co2 = max(400, min(2000, co2_base + random.uniform(-50, 100)))
         temperature = max(18, min(28, 22 + random.uniform(-2, 2)))
         humidity = max(30, min(70, 50 + random.uniform(-10, 10)))
-        relay_state = pm25 > 50 and random.random() > 0.3
+        relay_state = pm25 > 50 or pm10 > 63
+        warning = pm25 > 35 or pm10 > 50 or co2 > 1000
 
         return {
             "device_id": self.device_id,
@@ -48,7 +49,7 @@ class AirQualityEmulator:
             "temperature": round(temperature, 1),
             "humidity": round(humidity, 1),
             "relay_state": relay_state,
-            "status": "OK" if pm25 < 100 else "WARNING"
+            "status": "DANGER" if relay_state else "WARNING" if warning else "OK"
         }
 
     def display_data(self, data):
@@ -59,7 +60,7 @@ class AirQualityEmulator:
         print(f"🆔 Device:      {data['device_id']}")
         print(f"⏰ Time:        {datetime.fromtimestamp(data['timestamp']).strftime('%H:%M:%S')}")
         print(f"🌫️ PM2.5:       {data['pm25']} µg/m³ {'⚠️' if data['pm25'] > 35 else ''}")
-        print(f"💨 PM10:        {data['pm10']} µg/m³")
+        print(f"💨 PM10:        {data['pm10']} µg/m³ {'⚠️' if data['pm10'] > 50 else ''}")
         print(f"🌡️ CO2:         {data['co2']} ppm {'⚠️' if data['co2'] > 1000 else ''}")
         print(f"🌡️ Temperature: {data['temperature']}°C")
         print(f"💧 Humidity:    {data['humidity']}%")
@@ -104,7 +105,6 @@ class AirQualityEmulator:
                 print(f"   ⏳ Waiting {self.interval} seconds for next cycle...")
                 time.sleep(self.interval)
             else:
-                time.sleep(self.interval)
                 print("✅ Simulation demo completed!")
                 break
         
