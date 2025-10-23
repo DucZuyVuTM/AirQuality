@@ -7,7 +7,7 @@ from datetime import datetime
 conn = sqlite3.connect('air_quality.db')
 cursor = conn.cursor()
 cursor.execute('''CREATE TABLE IF NOT EXISTS telemetry 
-                 (timestamp TEXT, topic TEXT, value TEXT, received_at TEXT)''')
+                 (topic TEXT, value TEXT, received_at TEXT)''')
 conn.commit()
 
 def on_connect(client, userdata, flags, rc):
@@ -20,19 +20,9 @@ def on_message(client, userdata, msg):
     value = msg.payload.decode()
     received_at = datetime.now().isoformat()
     
-    # Parse JSON for attributes topic
-    if topic == "v1/devices/me/attributes":
-        try:
-            value_json = json.loads(value)
-            timestamp = value_json.get("timestamp", received_at)
-        except json.JSONDecodeError:
-            timestamp = received_at
-    else:
-        timestamp = received_at
-    
     # Store in database
-    cursor.execute("INSERT INTO telemetry VALUES (?, ?, ?, ?)", 
-                  (timestamp, topic, value, received_at))
+    cursor.execute("INSERT INTO telemetry VALUES (?, ?, ?)", 
+                  (topic, value, received_at))
     conn.commit()
     print(f"Received: {topic} = {value} at {received_at}")
 
