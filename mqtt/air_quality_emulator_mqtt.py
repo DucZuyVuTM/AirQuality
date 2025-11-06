@@ -17,7 +17,7 @@ class AirQualityEmulator:
         self.port = port
         self.client = mqtt.Client(client_id=f"emulator_{device_id}", protocol=mqtt.MQTTv311)
         self.running = False
-        self.interval = 30  # Seconds between readings
+        self.interval = 3  # Seconds between readings
 
         # Connect to MQTT broker
         try:

@@ -13,7 +13,7 @@ class AirQualityEmulator:
     def __init__(self, device_id="air_monitor_001"):
         self.device_id = device_id
         self.running = False
-        self.interval = 30  # Seconds between data readings
+        self.interval = 3  # Seconds between data readings
         
     def generate_sensor_data(self):
         """Generate simulated sensor data"""
